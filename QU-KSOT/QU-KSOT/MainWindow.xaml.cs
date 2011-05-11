@@ -30,7 +30,7 @@ namespace QU_KSOT
     /// CHANGE LOG:
     /// ------------------
     /// 
-    /// [1.0.0] Committed: 
+    /// [1.0.0] Committed: 2011-05-11 
     /// Just getting the basic system for depth view up and running as per Basic Depth Viewer tutorial.
     /// 
     /// 
