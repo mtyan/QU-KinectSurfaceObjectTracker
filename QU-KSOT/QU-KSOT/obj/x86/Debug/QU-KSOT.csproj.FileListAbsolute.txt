@@ -1,0 +1,15 @@
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\ResolveAssemblyReference.cache
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\MainWindow.baml
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\MainWindow.g.cs
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\App.g.cs
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\QU-KSOT_MarkupCompile.cache
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\QU-KSOT.g.resources
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\QU_KSOT.Properties.Resources.resources
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\GenerateResource.read.1.tlog
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\GenerateResource.write.1.tlog
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\bin\Debug\QU-KSOT.exe
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\bin\Debug\QU-KSOT.pdb
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\bin\Debug\ManagedNite.dll
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\bin\Debug\OpenNI.net.dll
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\QU-KSOT.exe
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\QU-KSOT.pdb
