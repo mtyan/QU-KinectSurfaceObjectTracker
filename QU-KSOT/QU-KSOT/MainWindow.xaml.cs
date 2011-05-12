@@ -16,6 +16,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Threading;
 using System.IO;
+using System.ComponentModel;
 
 
 namespace QU_KSOT
@@ -35,7 +36,7 @@ namespace QU_KSOT
     /// 
     /// 
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         #region Member Variables
         private Context context;                    // OpenNI operations
@@ -46,8 +47,10 @@ namespace QU_KSOT
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
         }
 
+        #region Kinect Functions - Depth
         /// <summary>
         /// This method updates the image on the MainWindow page with the latest depth image.
         /// </summary>
@@ -73,9 +76,9 @@ namespace QU_KSOT
                 {
                     // Change the color of the bitmap based on the depth value. You can make this
                     // whatever you want, my particular version is not that pretty.
-                    pDest[0] = (byte)(*pDepth >> 2);
-                    pDest[1] = (byte)(*pDepth >> 3);
-                    pDest[2] = (byte)(*pDepth >> 4);
+                    pDest[0] = (byte)(*pDepth >> 0);
+                    pDest[1] = (byte)(*pDepth >> 5);
+                    pDest[2] = (byte)(*pDepth >> 0);
                 }
             }
 
@@ -84,7 +87,9 @@ namespace QU_KSOT
             // Update the image to have the bitmap image we just copied
             image1.Source = getBitmapImage(bitmap);
         }
+        #endregion 
 
+        #region Display Depth Map
         /// <summary>
         /// This method gets executed when the window loads. In it, we initialize our connection with Kinect
         /// and set up the timer which will update our depth image.
@@ -151,5 +156,84 @@ namespace QU_KSOT
             bi.EndInit();
             return bi;
         }
+
+        private void image1_ImageFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+
+        }
+        #endregion
+
+        #region Mouse Click Location
+        #region INotifiedProperty Block
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion test
+
+        #region ViewModelProperty: HorizontalClickPoint
+        private double _horizontalClickPoint;
+        public double HorizontalClickPoint
+        {
+            get
+            {
+                return _horizontalClickPoint;
+            }
+
+            set
+            {
+                _horizontalClickPoint = value;
+                OnPropertyChanged("HorizontalClickPoint");
+            }
+        }
+        #endregion test
+
+        #region ViewModelProperty: VerticalClickPoint
+        private double _verticalClickPoint;
+        public double VerticalClickPoint
+        {
+            get
+            {
+                return _verticalClickPoint;
+            }
+
+            set
+            {
+                _verticalClickPoint = value;
+                OnPropertyChanged("VerticalClickPoint");
+            }
+        }
+        #endregion test
+
+        public Bitmap theBitmap
+        {
+            get
+            {
+                return bitmap;
+            }
+            set
+            {
+                bitmap = value;
+                OnPropertyChanged("theBitmap");
+            }
+        }//end Bitmap theBitmap
+
+        private void image1_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            System.Windows.Point clickPoint = e.GetPosition(image1);
+            HorizontalClickPoint = clickPoint.X;
+            VerticalClickPoint = clickPoint.Y;
+
+            coord_X.Text = clickPoint.X.ToString();
+            coord_Y.Text = clickPoint.Y.ToString();
+        }
+        #endregion
     }
 }

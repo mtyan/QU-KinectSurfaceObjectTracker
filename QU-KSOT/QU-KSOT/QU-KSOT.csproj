@@ -102,7 +102,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Resource Include="data\openni.xml" />
+    <Resource Include="data\openni.xml">
+      <SubType>Designer</SubType>
+    </Resource>
     <Resource Include="data\openniconfig.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
