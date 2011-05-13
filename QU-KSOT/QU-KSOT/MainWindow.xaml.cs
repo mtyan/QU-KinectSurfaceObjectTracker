@@ -17,6 +17,10 @@ using System.Drawing.Imaging;
 using System.Windows.Threading;
 using System.IO;
 using System.ComponentModel;
+using Emgu.CV;
+using Emgu.CV.UI;
+using Emgu.CV.Structure;
+using Emgu.Util;
 
 
 namespace QU_KSOT
@@ -30,6 +34,17 @@ namespace QU_KSOT
     /// 
     /// CHANGE LOG:
     /// ------------------
+    /// [1.0.2] Committed: 2011-05-13
+    /// Working on getting depth.
+    ///     1. Getting an Emgu.Matrix setup for holding depth values.
+    ///     2. Display data.
+    ///     
+    /// TODO:
+    ///     - Check matrix coordinates match up with the display coordinates.
+    /// 
+    /// [1.0.1] Committed: 2011-05-13
+    /// Getting the x & y coordinates read. No depth yet.
+    /// - Two options for coordinate output, the more complicated one looks a lot better.
     /// 
     /// [1.0.0] Committed: 2011-05-11 
     /// Just getting the basic system for depth view up and running as per Basic Depth Viewer tutorial.
@@ -42,6 +57,8 @@ namespace QU_KSOT
         private Context context;                    // OpenNI operations
         private DepthGenerator depth;               // Generates depth image
         private Bitmap bitmap;                      // The converted image.
+
+        private Matrix<Double> depthMatrix;         // EMGU.Matrix of the depth image.
         #endregion
 
         public MainWindow()
@@ -76,9 +93,13 @@ namespace QU_KSOT
                 {
                     // Change the color of the bitmap based on the depth value. You can make this
                     // whatever you want, my particular version is not that pretty.
-                    pDest[0] = (byte)(*pDepth >> 0);
-                    pDest[1] = (byte)(*pDepth >> 5);
-                    pDest[2] = (byte)(*pDepth >> 0);
+                    pDest[0] = (byte)(*pDepth >> 1);
+                    pDest[1] = (byte)(*pDepth >> 0);
+                    pDest[2] = (byte)(*pDepth >> 2);
+
+                    // Write vales to depth matrix. 
+                    // TODO: Check coordinate system.
+                    depthMatrix[y, x] = *pDepth;
                 }
             }
 
@@ -108,6 +129,9 @@ namespace QU_KSOT
                     throw new Exception(@"Error in Data\openniconfig.xml. No depth node found.");
                 MapOutputMode mapMode = this.depth.GetMapOutputMode();
                 this.bitmap = new Bitmap((int)mapMode.nXRes, (int)mapMode.nYRes, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                
+                // Initialize depthMatrix to hold depth values.
+                this.depthMatrix = new Matrix<Double>(480, 640);
             }
             catch (Exception ex)
             {
@@ -212,6 +236,23 @@ namespace QU_KSOT
         }
         #endregion test
 
+        #region ViewModelProperty: DepthClickPoint
+        private double _depthClickPoint;
+        public double DepthClickPoint
+        {
+            get
+            {
+                return _depthClickPoint;
+            }
+
+            set
+            {
+                _depthClickPoint = value;
+                OnPropertyChanged("DepthClickPoint");
+            }
+        }
+        #endregion test
+
         public Bitmap theBitmap
         {
             get
@@ -230,9 +271,11 @@ namespace QU_KSOT
             System.Windows.Point clickPoint = e.GetPosition(image1);
             HorizontalClickPoint = clickPoint.X;
             VerticalClickPoint = clickPoint.Y;
+            DepthClickPoint = depthMatrix[(int)VerticalClickPoint, (int)HorizontalClickPoint];
 
             coord_X.Text = clickPoint.X.ToString();
             coord_Y.Text = clickPoint.Y.ToString();
+
         }
         #endregion
     }
