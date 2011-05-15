@@ -68,6 +68,8 @@ namespace QU_KSOT
         private Bitmap bitmap;                      // The converted image.
 
         private Matrix<Double> depthMatrix;         // EMGU.Matrix of the depth image.
+        private Matrix<Double> depthMatrixROI;      // EMGU.Matrix of the ROI of the depth image.
+        private Image<Gray, Double> depthMatrixImage; // EMGU.Image of the depth image.
         private double globalMaximumDepth = 0;
         private double globalMinimumDepth = 99999;
         #endregion
@@ -130,6 +132,11 @@ namespace QU_KSOT
             // Update display variables for Global Depth values
             DisplayGlobalMaximumDepth = globalMaximumDepth;
             DisplayGlobalMinimumDepth = globalMinimumDepth;
+
+            // Create image
+            depthMatrix.CopyTo(depthMatrixImage);
+
+            image2.Source = getBitmapImage(depthMatrixImage.Bitmap);
         }
         #endregion 
 
@@ -155,6 +162,8 @@ namespace QU_KSOT
                 
                 // Initialize depthMatrix to hold depth values.
                 this.depthMatrix = new Matrix<Double>(480, 640);
+                // Initialize depthMatrixImage
+                this.depthMatrixImage = new Image<Gray,double>(640,480);
             }
             catch (Exception ex)
             {
