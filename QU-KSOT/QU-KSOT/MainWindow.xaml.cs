@@ -34,6 +34,15 @@ namespace QU_KSOT
     /// 
     /// CHANGE LOG:
     /// ------------------
+    /// [1.0.3] Committed: 2011-05-xx
+    /// Getting user information on coordinates and depth working.
+    ///     1. Global minimum and maximum depth.
+    ///         - In progress
+    ///     2. Depth at user-defined coordinates (without the mouse.)
+    ///         - In progress
+    /// 
+    /// Coordinates: 0,0 @ top left, 640,480 @ bottom right.
+    ///         
     /// [1.0.2] Committed: 2011-05-13
     /// Working on getting depth.
     ///     1. Getting an Emgu.Matrix setup for holding depth values.
@@ -59,6 +68,8 @@ namespace QU_KSOT
         private Bitmap bitmap;                      // The converted image.
 
         private Matrix<Double> depthMatrix;         // EMGU.Matrix of the depth image.
+        private double globalMaximumDepth = 0;
+        private double globalMinimumDepth = 99999;
         #endregion
 
         public MainWindow()
@@ -73,6 +84,10 @@ namespace QU_KSOT
         /// </summary>
         private unsafe void UpdateDepth()
         {
+            //Reset Global Depth Values
+            globalMaximumDepth = 0;
+            globalMinimumDepth = 99999;
+
             // Get information about the depth image
             DepthMetaData depthMD = new DepthMetaData();
 
@@ -100,6 +115,10 @@ namespace QU_KSOT
                     // Write vales to depth matrix. 
                     // TODO: Check coordinate system.
                     depthMatrix[y, x] = *pDepth;
+
+                    //Global Min & Max
+                    if ((depthMatrix[y, x] < globalMinimumDepth)&&(depthMatrix[y,x]>0)) globalMinimumDepth = depthMatrix[y, x];
+                    if (depthMatrix[y, x] > globalMaximumDepth) globalMaximumDepth = depthMatrix[y, x];
                 }
             }
 
@@ -107,6 +126,10 @@ namespace QU_KSOT
 
             // Update the image to have the bitmap image we just copied
             image1.Source = getBitmapImage(bitmap);
+
+            // Update display variables for Global Depth values
+            DisplayGlobalMaximumDepth = globalMaximumDepth;
+            DisplayGlobalMinimumDepth = globalMinimumDepth;
         }
         #endregion 
 
@@ -253,29 +276,66 @@ namespace QU_KSOT
         }
         #endregion test
 
-        public Bitmap theBitmap
-        {
-            get
-            {
-                return bitmap;
-            }
-            set
-            {
-                bitmap = value;
-                OnPropertyChanged("theBitmap");
-            }
-        }//end Bitmap theBitmap
-
         private void image1_MouseUp(object sender, MouseButtonEventArgs e)
         {
             System.Windows.Point clickPoint = e.GetPosition(image1);
             HorizontalClickPoint = clickPoint.X;
             VerticalClickPoint = clickPoint.Y;
             DepthClickPoint = depthMatrix[(int)VerticalClickPoint, (int)HorizontalClickPoint];
+        }
+        #endregion
 
-            coord_X.Text = clickPoint.X.ToString();
-            coord_Y.Text = clickPoint.Y.ToString();
+        #region Global Depth Information
+        #region ViewModelProperty: DisplayGlobalMaximumDepth
+        private double _displayGlobalMaximumDepth;
+        public double DisplayGlobalMaximumDepth
+        {
+            get
+            {
+                return _displayGlobalMaximumDepth;
+            }
 
+            set
+            {
+                _displayGlobalMaximumDepth = value;
+                OnPropertyChanged("DisplayGlobalMaximumDepth");
+            }
+        }
+        #endregion ViewModelProperty: DisplayGlobalMaximumDepth
+        #region ViewModelProperty: DisplayGlobalMinimumDepth;
+        private double _displayGlobalMinimumDepth;
+        public double DisplayGlobalMinimumDepth
+        {
+            get
+            {
+                return _displayGlobalMinimumDepth;
+            }
+
+            set
+            {
+                _displayGlobalMinimumDepth = value;
+                OnPropertyChanged("DisplayGlobalMinimumDepth");
+            }
+        }
+        #endregion test
+
+        private void coord_X_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            //coord_D.Text = depthMatrix[Convert.ToInt16(coord_X.Text), Convert.ToInt16(coord_Y.Text)].ToString();
+            try
+            {
+                if ((coord_X != null) && (coord_Y != null) && (coord_D != null))
+                {
+                    int temp = Convert.ToInt16(coord_X.Text);
+                    temp++;
+                    //coord_D.Text = temp.ToString();
+                    coord_D.Text = depthMatrix[Convert.ToInt16(coord_Y.Text), Convert.ToInt16(coord_X.Text)].ToString();
+                }
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message);
+            }
         }
         #endregion
     }
