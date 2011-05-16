@@ -67,11 +67,23 @@ namespace QU_KSOT
         private DepthGenerator depth;               // Generates depth image
         private Bitmap bitmap;                      // The converted image.
 
-        private Matrix<Double> depthMatrix;         // EMGU.Matrix of the depth image.
-        private Matrix<Double> depthMatrixROI;      // EMGU.Matrix of the ROI of the depth image.
-        private Image<Gray, Double> depthMatrixImage; // EMGU.Image of the depth image.
+        private Matrix<Double> depthMatrix;                 // EMGU.Matrix of the depth image.
+        private Matrix<Double> backgroundDepthMatrix;       // Is the background image.
+        private Matrix<Double> depthMatrixROI;              // EMGU.Matrix of the ROI of the depth image.
+        private Matrix<Byte> depthMatrixROIByte;
+        private Image<Gray, Double> backgroundDepthImage;   // background image
+        private Image<Gray, Double> depthMatrixImage;       // EMGU.Image of the depth image.
+        private Image<Gray, Byte> depthMatrixROIImage;      //
         private double globalMaximumDepth = 0;
         private double globalMinimumDepth = 99999;
+        private double globalROIMaximumDepth = 0;
+        private double globalROIMinimumDepth = 99999;
+        private bool backgroundImageExists = false;
+
+        #region Line Definitions
+        private LineSegment2D[] filterBoundary = new LineSegment2D[4];
+        private bool filterBoundariesExists = false;
+        #endregion
         #endregion
 
         public MainWindow()
@@ -89,6 +101,8 @@ namespace QU_KSOT
             //Reset Global Depth Values
             globalMaximumDepth = 0;
             globalMinimumDepth = 99999;
+            globalROIMaximumDepth = 0;
+            globalROIMinimumDepth = 99999;
 
             // Get information about the depth image
             DepthMetaData depthMD = new DepthMetaData();
@@ -101,6 +115,7 @@ namespace QU_KSOT
 
             // This will point to our depth image
             ushort* pDepth = (ushort*)this.depth.GetDepthMapPtr().ToPointer();
+            System.Drawing.Point point;
 
             // Go over the depth image and set the bitmap we're copying to based on our depth value.
             for (int y = 0; y < depthMD.YRes; ++y)
@@ -115,14 +130,49 @@ namespace QU_KSOT
                     pDest[2] = (byte)(*pDepth >> 2);
 
                     // Write vales to depth matrix. 
-                    // TODO: Check coordinate system.
+                    // TODO: Check coordinate system. top/left = origin
                     depthMatrix[y, x] = *pDepth;
+
+                    //Using line filters:
+                    if (filterBoundariesExists)
+                    {
+                        point = new System.Drawing.Point(x,y);      //declare current point
+
+                        int temp0 = filterBoundary[0].Side(point);
+                        int temp1 = filterBoundary[1].Side(point);
+                        int temp2 = filterBoundary[2].Side(point);
+                        int temp3 = filterBoundary[3].Side(point);
+
+                        //if((filterBoundary[0].Side(point)<0)||(filterBoundary[1].Side(point)>0)||(filterBoundary[2].Side(point)>0)||(filterBoundary[3].Side(point)<0))
+                        if (!((temp0 > 0)&&(temp2 < 0)&&(temp1 > 0)&&(temp3 < 0)))
+                        {
+                            //Outside bounds, set to zero
+                            depthMatrixROI[y,x] = 0;
+                        }
+                        else
+                        {
+                            //Inside the bounds of the table
+                            if (depthMatrix[y,x] != 0)
+                            {
+                                depthMatrixROI[y,x] = depthMatrix[y,x];
+
+                                // ROI Min & Max
+                                if ((depthMatrixROI[y, x] < globalROIMinimumDepth) && (depthMatrixROI[y, x] > 0)) globalROIMinimumDepth = depthMatrixROI[y, x];
+                                if (depthMatrixROI[y, x] > globalROIMaximumDepth) globalROIMaximumDepth = depthMatrixROI[y, x];
+                            }
+                            else
+                            {
+                                depthMatrixROI[y,x] = 1;
+                            }
+                        }
+                    }
 
                     //Global Min & Max
                     if ((depthMatrix[y, x] < globalMinimumDepth)&&(depthMatrix[y,x]>0)) globalMinimumDepth = depthMatrix[y, x];
                     if (depthMatrix[y, x] > globalMaximumDepth) globalMaximumDepth = depthMatrix[y, x];
-                }
-            }
+
+                }//end for - x
+            }//end for - y
 
             this.bitmap.UnlockBits(data);
 
@@ -133,10 +183,53 @@ namespace QU_KSOT
             DisplayGlobalMaximumDepth = globalMaximumDepth;
             DisplayGlobalMinimumDepth = globalMinimumDepth;
 
-            // Create image
-            depthMatrix.CopyTo(depthMatrixImage);
+            //if (backgroundImageExists)
+            //{
+            //    //Matrix<Double> temp = new Matrix<Double>(480, 640);
+            //    //temp = backgroundDepthMatrix - depthMatrix;
+            //    //temp *= 10000;
+            //    //temp.CopyTo(depthMatrixImage);
 
-            image2.Source = getBitmapImage(depthMatrixImage.Bitmap);
+            //    Image<Gray, Double> temp = new Image<Gray, Double>(640, 480);
+            //    depthMatrix.CopyTo(depthMatrixImage);
+            //    temp = backgroundDepthImage - depthMatrixImage;
+
+            //    //temp = temp.Pow(0.8);
+
+            //    image2.Source = getBitmapImage(temp.Bitmap);
+                
+            //}
+            if (filterBoundariesExists)
+            {
+                //Calculate the slope.
+                double m = ((5 - 255) / (globalROIMaximumDepth - globalROIMinimumDepth));
+
+                //Scale use depthMatrixROI to depthMatrixROIByte
+                for (int y = 0; y < depthMD.YRes; ++y)
+                {
+                    for (int x = 0; x < depthMD.XRes; ++x)
+                    {
+                        if (depthMatrixROI[y, x] < 2)  //Then this is outside the region.
+                        {
+                            depthMatrixROIByte[y, x] = 0;
+                        }
+                        else
+                        {
+                            depthMatrixROIByte[y, x] = (byte)((m * (depthMatrixROI[y, x] - globalROIMinimumDepth)) + 255);
+                        }
+                    }
+                }
+
+                depthMatrixROIByte.CopyTo(depthMatrixROIImage);
+                image2.Source = getBitmapImage(depthMatrixROIImage.Bitmap);
+            }
+            else
+            {
+                // Create image
+                depthMatrix.CopyTo(depthMatrixImage);
+                image2.Source = getBitmapImage(depthMatrixImage.Bitmap);
+            }
+            
         }
         #endregion 
 
@@ -162,8 +255,13 @@ namespace QU_KSOT
                 
                 // Initialize depthMatrix to hold depth values.
                 this.depthMatrix = new Matrix<Double>(480, 640);
+                this.depthMatrixROI = new Matrix<Double>(480, 640);
+                this.depthMatrixROIByte = new Matrix<Byte>(480, 640);
+                this.backgroundDepthMatrix = new Matrix<Double>(480, 640);
                 // Initialize depthMatrixImage
                 this.depthMatrixImage = new Image<Gray,double>(640,480);
+                this.depthMatrixROIImage = new Image<Gray, byte>(640, 480);
+                this.backgroundDepthImage = new Image<Gray, double>(640, 480);
             }
             catch (Exception ex)
             {
@@ -175,7 +273,7 @@ namespace QU_KSOT
             // Set the timer to update teh depth image every 10 ms.
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 5);
             dispatcherTimer.Start();
             Console.WriteLine("Finished loading");
         }
@@ -345,6 +443,57 @@ namespace QU_KSOT
             {
                 MessageBox.Show(exception.Message);
             }
+        }
+        #endregion
+
+        //When clicked, the current image becomes the background image.
+        private void button1_Click(object sender, RoutedEventArgs e)
+        {
+            backgroundDepthMatrix = depthMatrix;
+            backgroundDepthMatrix.CopyTo(backgroundDepthImage);
+            backgroundImageExists = true;
+            image3.Source = getBitmapImage(backgroundDepthImage.Bitmap);
+        }
+
+        private void button_UpdateFilter_Click(object sender, RoutedEventArgs e)
+        {
+            filterBoundariesExists = true;
+
+            System.Drawing.Point P1 = new System.Drawing.Point(Convert.ToInt16(textBox_P1_x.Text), Convert.ToInt16(textBox_P1_y.Text));
+            System.Drawing.Point P2 = new System.Drawing.Point(Convert.ToInt16(textBox_P2_x.Text), Convert.ToInt16(textBox_P2_y.Text));
+            System.Drawing.Point P3 = new System.Drawing.Point(Convert.ToInt16(textBox_P3_x.Text), Convert.ToInt16(textBox_P3_y.Text));
+            System.Drawing.Point P4 = new System.Drawing.Point(Convert.ToInt16(textBox_P4_x.Text), Convert.ToInt16(textBox_P4_y.Text));
+
+
+            filterBoundary[0] = new LineSegment2D(P1, P2);
+            filterBoundary[1] = new LineSegment2D(P2, P4);
+            filterBoundary[2] = new LineSegment2D(P3, P4);
+            filterBoundary[3] = new LineSegment2D(P1, P3);
+        }
+
+        #region Quick Update Boundary Points
+        private void button_P1_Click(object sender, RoutedEventArgs e)
+        {
+            textBox_P1_x.Text = HorizontalClickPoint.ToString();
+            textBox_P1_y.Text = VerticalClickPoint.ToString();
+        }
+
+        private void button_P2_Click(object sender, RoutedEventArgs e)
+        {
+            textBox_P2_x.Text = HorizontalClickPoint.ToString();
+            textBox_P2_y.Text = VerticalClickPoint.ToString();
+        }
+
+        private void button_P3_Click(object sender, RoutedEventArgs e)
+        {
+            textBox_P3_x.Text = HorizontalClickPoint.ToString();
+            textBox_P3_y.Text = VerticalClickPoint.ToString();
+        }
+
+        private void button_P4_Click(object sender, RoutedEventArgs e)
+        {
+            textBox_P4_x.Text = HorizontalClickPoint.ToString();
+            textBox_P4_y.Text = VerticalClickPoint.ToString();
         }
         #endregion
     }

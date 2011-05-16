@@ -43,7 +43,66 @@
                 <TextBlock Height="Auto" Name="textBlock12" Text="{Binding DisplayGlobalMaximumDepth}" Width="Auto" />
             </StackPanel>
         </StackPanel>
-        <Image Grid.Column="1" Height="480" HorizontalAlignment="Left" Margin="54,66,0,0" Name="image2" Stretch="None" VerticalAlignment="Top" Width="640" />
+        <Image Grid.Column="1" Height="480" HorizontalAlignment="Left" Margin="60,12,0,0" Name="image2" Stretch="None" VerticalAlignment="Top" Width="640" />
+        <Button Content="Capture Background" Height="23" HorizontalAlignment="Left" Margin="293,551,0,0" Name="button1" VerticalAlignment="Top" Width="75" Click="button1_Click" />
+        <Image Grid.Column="1" Height="480" HorizontalAlignment="Left" Margin="60,508,0,0" Name="image3" Stretch="Fill" VerticalAlignment="Top" Width="640" />
+        <StackPanel Height="89" HorizontalAlignment="Left" Margin="53,672,0,0" Name="stackPanel10" VerticalAlignment="Top" Width="98">
+            <StackPanel Height="27" Name="stackPanel22" Width="96" Orientation="Horizontal">
+                <Label Content="P1" Height="28" Name="label4" />
+                <Button Content="Update P1" Height="23" Name="button_P1" Width="Auto" Click="button_P1_Click" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel11" Width="Auto" Orientation="Horizontal">
+                <Label Content="X =" Height="Auto" Name="label5" />
+                <TextBox Height="Auto" Name="textBox_P1_x" Width="50" Text="0" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel12" Orientation="Horizontal" Width="Auto">
+                <Label Content="Y =" Height="Auto" Name="label6" />
+                <TextBox Height="Auto" Name="textBox_P1_y" Width="50" Text="0" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Height="89" HorizontalAlignment="Left" Margin="159,672,0,0" Name="stackPanel13" VerticalAlignment="Top" Width="98">
+            <StackPanel Height="27" Name="stackPanel23" Orientation="Horizontal" Width="96">
+                <Label Content="P2" Height="28" Name="label7" />
+                <Button Content="Update P2" Height="23" Name="button_P2" Width="Auto" Click="button_P2_Click" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel14" Orientation="Horizontal" Width="Auto">
+                <Label Content="X =" Height="Auto" Name="label8" />
+                <TextBox Height="Auto" Name="textBox_P2_x" Width="50" Text="100" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel15" Orientation="Horizontal" Width="Auto">
+                <Label Content="Y =" Height="Auto" Name="label9" />
+                <TextBox Height="Auto" Name="textBox_P2_y" Width="50" Text="0" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Height="89" HorizontalAlignment="Left" Margin="53,767,0,0" Name="stackPanel16" VerticalAlignment="Top" Width="98">
+            <StackPanel Height="27" Name="stackPanel24" Orientation="Horizontal" Width="96">
+                <Label Content="P3" Height="28" Name="label10" />
+                <Button Content="Update P3" Height="23" Name="button_P3" Width="Auto" Click="button_P3_Click" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel17" Orientation="Horizontal" Width="Auto">
+                <Label Content="X =" Height="Auto" Name="label11" />
+                <TextBox Height="Auto" Name="textBox_P3_x" Width="50" Text="0" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel18" Orientation="Horizontal" Width="Auto">
+                <Label Content="Y =" Height="Auto" Name="label12" />
+                <TextBox Height="Auto" Name="textBox_P3_y" Width="50" Text="100" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Height="89" Name="stackPanel19" Width="98" Margin="159,767,431,144">
+            <StackPanel Height="27" Name="stackPanel25" Orientation="Horizontal" Width="96">
+                <Label Content="P4" Height="28" Name="label13" />
+                <Button Content="Update P4" Height="23" Name="button_P4" Width="Auto" Click="button_P4_Click" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel20" Orientation="Horizontal" Width="Auto">
+                <Label Content="X =" Height="Auto" Name="label14" />
+                <TextBox Height="Auto" Name="textBox_P4_x" Width="50" Text="100" />
+            </StackPanel>
+            <StackPanel Height="Auto" Name="stackPanel21" Orientation="Horizontal" Width="Auto">
+                <Label Content="Y =" Height="Auto" Name="label15" />
+                <TextBox Height="Auto" Name="textBox_P4_y" Width="50" Text="100" />
+            </StackPanel>
+        </StackPanel>
+        <Button Content="Update Filter" Height="23" HorizontalAlignment="Left" Margin="115,862,0,0" Name="button_UpdateFilter" VerticalAlignment="Top" Width="80" Click="button_UpdateFilter_Click" />
     </Grid>
     
 </Window>
