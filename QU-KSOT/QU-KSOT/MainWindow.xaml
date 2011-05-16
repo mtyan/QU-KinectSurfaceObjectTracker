@@ -103,6 +103,7 @@
             </StackPanel>
         </StackPanel>
         <Button Content="Update Filter" Height="23" HorizontalAlignment="Left" Margin="115,862,0,0" Name="button_UpdateFilter" VerticalAlignment="Top" Width="80" Click="button_UpdateFilter_Click" />
+        <Slider Height="23" HorizontalAlignment="Left" Margin="388,762,0,0" Name="slider1" VerticalAlignment="Top" Width="100" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="2" SmallChange="0.01" Maximum="4" />
     </Grid>
     
 </Window>

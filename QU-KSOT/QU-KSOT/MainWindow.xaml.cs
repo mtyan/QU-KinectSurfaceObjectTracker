@@ -154,7 +154,14 @@ namespace QU_KSOT
                             //Inside the bounds of the table
                             if (depthMatrix[y,x] != 0)
                             {
-                                depthMatrixROI[y,x] = depthMatrix[y,x];
+                                if (backgroundImageExists)
+                                {
+                                    depthMatrixROI[y, x] = Math.Pow((backgroundDepthMatrix[y,x] - depthMatrix[y, x]),slider1.Value);
+                                }
+                                else
+                                {
+                                    depthMatrixROI[y, x] = depthMatrix[y, x];
+                                }
 
                                 // ROI Min & Max
                                 if ((depthMatrixROI[y, x] < globalROIMinimumDepth) && (depthMatrixROI[y, x] > 0)) globalROIMinimumDepth = depthMatrixROI[y, x];
@@ -202,7 +209,7 @@ namespace QU_KSOT
             if (filterBoundariesExists)
             {
                 //Calculate the slope.
-                double m = ((5 - 255) / (globalROIMaximumDepth - globalROIMinimumDepth));
+                double m = ((255 - 5) / (globalROIMaximumDepth - globalROIMinimumDepth));
 
                 //Scale use depthMatrixROI to depthMatrixROIByte
                 for (int y = 0; y < depthMD.YRes; ++y)
@@ -273,7 +280,7 @@ namespace QU_KSOT
             // Set the timer to update teh depth image every 10 ms.
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 5);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
             dispatcherTimer.Start();
             Console.WriteLine("Finished loading");
         }
@@ -449,12 +456,23 @@ namespace QU_KSOT
         //When clicked, the current image becomes the background image.
         private void button1_Click(object sender, RoutedEventArgs e)
         {
-            backgroundDepthMatrix = depthMatrix;
-            backgroundDepthMatrix.CopyTo(backgroundDepthImage);
-            backgroundImageExists = true;
-            image3.Source = getBitmapImage(backgroundDepthImage.Bitmap);
+            if (filterBoundariesExists)
+            {
+                backgroundImageExists = true;
+
+                backgroundDepthMatrix = new Matrix<Double>(480, 640);
+                depthMatrixROI.CopyTo(backgroundDepthMatrix);
+                backgroundDepthMatrix.CopyTo(backgroundDepthImage);
+                
+                image3.Source = getBitmapImage(backgroundDepthImage.Bitmap);
+            }
+            else
+            {
+                MessageBox.Show("Please define ROI");
+            }
         }
 
+        #region ROI Definition
         private void button_UpdateFilter_Click(object sender, RoutedEventArgs e)
         {
             filterBoundariesExists = true;
@@ -495,6 +513,7 @@ namespace QU_KSOT
             textBox_P4_x.Text = HorizontalClickPoint.ToString();
             textBox_P4_y.Text = VerticalClickPoint.ToString();
         }
+        #endregion
         #endregion
     }
 }
