@@ -31,3 +31,4 @@ D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSO
 D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\bin\Debug\opencv_objdetect220.dll
 D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\bin\Debug\opencv_video220.dll
 D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\obj\x86\Debug\QU-KSOT_Content.g.cs
+D:\Data\My Dropbox\M.Yan\Kinect\QU-KinectSurfaceObjectTracker.git\QU-KSOT\QU-KSOT\bin\Debug\cvextern.dll

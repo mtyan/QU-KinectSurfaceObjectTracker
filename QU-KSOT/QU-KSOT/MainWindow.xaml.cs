@@ -34,7 +34,17 @@ namespace QU_KSOT
     /// 
     /// CHANGE LOG:
     /// ------------------
-    /// [1.0.3] Committed: 2011-05-xx
+    /// [1.0.6] Committed: 2011-05-16
+    ///     1. Blob tracking
+    /// 
+    /// [1.0.5] Committed: 2011-05-16
+    ///     1. Background subtraction
+    ///     2. ROI bounds defined by four points.
+    ///         - Allows for perspective skewed ROI (square vs. quadrialteral)
+    /// 
+    /// [1.0.4] Committed: 2011-05-15
+    /// 
+    /// [1.0.3] Committed: 2011-05-14
     /// Getting user information on coordinates and depth working.
     ///     1. Global minimum and maximum depth.
     ///         - In progress
@@ -50,6 +60,7 @@ namespace QU_KSOT
     ///     
     /// TODO:
     ///     - Check matrix coordinates match up with the display coordinates.
+    ///     = (0,0) at top left
     /// 
     /// [1.0.1] Committed: 2011-05-13
     /// Getting the x & y coordinates read. No depth yet.
@@ -84,6 +95,23 @@ namespace QU_KSOT
         private LineSegment2D[] filterBoundary = new LineSegment2D[4];
         private bool filterBoundariesExists = false;
         #endregion
+
+        #region Blob Tracking
+
+        private Emgu.CV.VideoSurveillance.BlobTrackerAutoParam<Gray> blobParam;
+        private Emgu.CV.VideoSurveillance.BlobTrackerAuto<Gray> blobTracker;
+        //Create font to be printed.
+        private MCvFont font = new MCvFont(Emgu.CV.CvEnum.FONT.CV_FONT_HERSHEY_SIMPLEX, 0.5, 0.5);
+        //Colours
+        private Bgr[] targetColour = {new Bgr(255,0,0),new Bgr(0,255,0),new Bgr(0,0,255), new Bgr(255,255,0), new Bgr(255,0,255), new Bgr(0,255,255)};
+        //Image
+        private Image<Bgr, Byte> trackingImage;
+        //Dimming Limit
+        private int _tickDuration = 2;      //in milliseconds
+        private int _dimCounter = 0;
+        private bool _dimming = false;
+
+        #endregion BlobTracking
         #endregion
 
         public MainWindow()
@@ -228,16 +256,63 @@ namespace QU_KSOT
                 }
 
                 depthMatrixROIByte.CopyTo(depthMatrixROIImage);
+                
                 image2.Source = getBitmapImage(depthMatrixROIImage.Bitmap);
-            }
+
+
+                #region Blob Tracking Algorithm
+
+                //Binary Thresholded image, reduces noise even more.
+                depthMatrixROIImage = depthMatrixROIImage.ThresholdBinary(new Gray(slider2.Value), new Gray(255));
+                //using a foreground mask.
+                blobTracker.Process(depthMatrixROIImage, depthMatrixROIImage);
+
+                //blobTracker.Process(depthMatrixROIImage);
+
+                //Image<Gray, Byte> tempImage = new Image<Gray, Byte>(640, 480, new Gray(0));
+                //Image<Gray, Byte> tempImage = blobTracker.ForgroundMask;
+
+                //blobTracker.Process(depthMatrixROIImage, tempImage);
+
+                // Dimming
+                if (_dimming)
+                {
+                    if (_dimCounter > ((Convert.ToInt16(textBoxLifespan.Text) * 4) / _tickDuration))
+                    {
+                        Image<Bgr,Byte> temp = trackingImage - new Image<Bgr, Byte>(640, 480, new Bgr(1, 1, 1));
+                        temp.CopyTo(trackingImage);
+                        _dimCounter = 0;
+                    }
+                    else
+                    {
+                        _dimCounter++;
+                    }
+                }
+
+                // Tag each blob
+                foreach (MCvBlob blob in blobTracker)
+                {
+                    // Draw Rectangle
+                    //tempImage.Draw(System.Drawing.Rectangle.Round(blob), new Gray(250), 2);
+                    trackingImage.Draw(System.Drawing.Rectangle.Round(blob), targetColour[blob.ID], 2);
+
+                    // Draw Text
+                    //tempImage.Draw(blob.ID.ToString(), ref font, System.Drawing.Point.Round(blob.Center), new Gray(200));
+                }
+
+                //Set image3 to the blob tracking.
+                //image2.Source = getBitmapImage(depthMatrixROIImage.Bitmap);
+                image3.Source = getBitmapImage(trackingImage.Bitmap);
+
+                #endregion
+            }//end if(filterBoundariesExists)
             else
             {
                 // Create image
                 depthMatrix.CopyTo(depthMatrixImage);
-                image2.Source = getBitmapImage(depthMatrixImage.Bitmap);
-            }
-            
-        }
+                image2.Source = getBitmapImage(depthMatrixImage.Bitmap);  
+            }    
+        }//end UpdateDepth()
         #endregion 
 
         #region Display Depth Map
@@ -260,15 +335,26 @@ namespace QU_KSOT
                 MapOutputMode mapMode = this.depth.GetMapOutputMode();
                 this.bitmap = new Bitmap((int)mapMode.nXRes, (int)mapMode.nYRes, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                 
-                // Initialize depthMatrix to hold depth values.
+                // Initialize Matrixes
                 this.depthMatrix = new Matrix<Double>(480, 640);
                 this.depthMatrixROI = new Matrix<Double>(480, 640);
                 this.depthMatrixROIByte = new Matrix<Byte>(480, 640);
                 this.backgroundDepthMatrix = new Matrix<Double>(480, 640);
-                // Initialize depthMatrixImage
+                // Initialize Images
                 this.depthMatrixImage = new Image<Gray,double>(640,480);
                 this.depthMatrixROIImage = new Image<Gray, byte>(640, 480);
                 this.backgroundDepthImage = new Image<Gray, double>(640, 480);
+                this.trackingImage = new Image<Bgr, byte>(640, 480, new Bgr(0, 0, 0));
+
+                // Initialize Blob Tracking Components
+                    // Blob Tracking Parameter
+                blobParam = new Emgu.CV.VideoSurveillance.BlobTrackerAutoParam<Gray>();
+                blobParam.BlobTracker = new Emgu.CV.VideoSurveillance.BlobTracker(Emgu.CV.CvEnum.BLOBTRACKER_TYPE.CC);
+                blobParam.BlobDetector = new Emgu.CV.VideoSurveillance.BlobDetector(Emgu.CV.CvEnum.BLOB_DETECTOR_TYPE.CC);
+                //blobParam.FGDetector = new Emgu.CV.VideoSurveillance.FGDetector<Gray>(Emgu.CV.CvEnum.FORGROUND_DETECTOR_TYPE.FGD);
+                //blobParam.FGTrainFrames = 10;
+                    // Blob Tracking initialization
+                blobTracker = new Emgu.CV.VideoSurveillance.BlobTrackerAuto<Gray>(blobParam);
             }
             catch (Exception ex)
             {
@@ -280,7 +366,7 @@ namespace QU_KSOT
             // Set the timer to update teh depth image every 10 ms.
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, _tickDuration);
             dispatcherTimer.Start();
             Console.WriteLine("Finished loading");
         }
@@ -514,6 +600,17 @@ namespace QU_KSOT
             textBox_P4_y.Text = VerticalClickPoint.ToString();
         }
         #endregion
+
+        private void checkBox1_Checked(object sender, RoutedEventArgs e)
+        {
+            _dimming = true;
+        }
+
         #endregion
+
+        private void dimming_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _dimming = false;
+        }
     }
 }
