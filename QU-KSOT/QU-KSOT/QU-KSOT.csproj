@@ -159,6 +159,7 @@
     <Content Include="cvextern.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="data\Eye-new_small.PNG" />
     <Content Include="opencv_calib3d220.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

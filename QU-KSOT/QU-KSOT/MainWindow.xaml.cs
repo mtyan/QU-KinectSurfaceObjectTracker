@@ -27,13 +27,22 @@ namespace QU_KSOT
 {
     /// <summary>
     /// Queen's University - Kinect Surface Object Tracker
-    /// Version 1.0.0
+    /// Version 1.0.7
     /// 
     /// Framework is based on Basic Depth Viewer by Julia Scharz
     /// http://www.codingbeta.com/?p=90
     /// 
     /// CHANGE LOG:
     /// ------------------
+    /// [1.0.7] Committed: 2011-05-17
+    ///     - Reformat and clean-up GUI.
+    ///     - Add information?
+    ///     
+    ///     TODO:
+    ///         - Make dimmable work. => Done!
+    ///         = Make sure settings are large enough, dim_step = 10ish, time_step = 2 to 5.
+    ///         
+    /// 
     /// [1.0.6] Committed: 2011-05-16
     ///     1. Blob tracking
     /// 
@@ -107,7 +116,7 @@ namespace QU_KSOT
         //Image
         private Image<Bgr, Byte> trackingImage;
         //Dimming Limit
-        private int _tickDuration = 2;      //in milliseconds
+        private int _tickDuration = 5;      //in milliseconds
         private int _dimCounter = 0;
         private bool _dimming = false;
 
@@ -184,6 +193,7 @@ namespace QU_KSOT
                             {
                                 if (backgroundImageExists)
                                 {
+                                    //Background subtraction (scaled)
                                     depthMatrixROI[y, x] = Math.Pow((backgroundDepthMatrix[y,x] - depthMatrix[y, x]),slider1.Value);
                                 }
                                 else
@@ -277,27 +287,39 @@ namespace QU_KSOT
                 // Dimming
                 if (_dimming)
                 {
-                    if (_dimCounter > ((Convert.ToInt16(textBoxLifespan.Text) * 4) / _tickDuration))
+                    if (_dimCounter > progressBar1.Maximum)
                     {
-                        Image<Bgr,Byte> temp = trackingImage - new Image<Bgr, Byte>(640, 480, new Bgr(1, 1, 1));
-                        temp.CopyTo(trackingImage);
+                        Image<Bgr,Byte> temp = trackingImage - new Image<Bgr, Byte>(640, 480, new Bgr(slider_DimStep.Value, slider_DimStep.Value, slider_DimStep.Value));
+                        //temp.CopyTo(trackingImage);
+                        trackingImage = temp.Clone();
                         _dimCounter = 0;
                     }
                     else
                     {
                         _dimCounter++;
                     }
+
+                    progressBar1.Value = _dimCounter;
                 }
 
                 // Tag each blob
                 foreach (MCvBlob blob in blobTracker)
                 {
-                    // Draw Rectangle
-                    //tempImage.Draw(System.Drawing.Rectangle.Round(blob), new Gray(250), 2);
-                    trackingImage.Draw(System.Drawing.Rectangle.Round(blob), targetColour[blob.ID], 2);
+                    try
+                    {
+                        // Draw Rectangle
+                        //tempImage.Draw(System.Drawing.Rectangle.Round(blob), new Gray(250), 2);
+                        trackingImage.Draw(System.Drawing.Rectangle.Round(blob), targetColour[blob.ID], 2);
 
-                    // Draw Text
-                    //tempImage.Draw(blob.ID.ToString(), ref font, System.Drawing.Point.Round(blob.Center), new Gray(200));
+                        // Draw Text
+                        //tempImage.Draw(blob.ID.ToString(), ref font, System.Drawing.Point.Round(blob.Center), new Gray(200));
+                    }
+                    catch (IndexOutOfRangeException ex_Index)
+                    {
+                        MessageBox.Show(ex_Index.Message);
+                        MessageBox.Show("Tracking limit reached, application terminating...");
+                        this.Close();
+                    }
                 }
 
                 //Set image3 to the blob tracking.
@@ -355,6 +377,9 @@ namespace QU_KSOT
                 //blobParam.FGTrainFrames = 10;
                     // Blob Tracking initialization
                 blobTracker = new Emgu.CV.VideoSurveillance.BlobTrackerAuto<Gray>(blobParam);
+
+                progressBar1.Minimum = 0;
+                progressBar1.Maximum = ((Convert.ToInt16(textBoxLifespan.Text) * 4) / _tickDuration);
             }
             catch (Exception ex)
             {
@@ -479,7 +504,7 @@ namespace QU_KSOT
         private void image1_MouseUp(object sender, MouseButtonEventArgs e)
         {
             System.Windows.Point clickPoint = e.GetPosition(image1);
-            HorizontalClickPoint = clickPoint.X;
+            HorizontalClickPoint = (double)Convert.ToInt16(clickPoint.X);
             VerticalClickPoint = clickPoint.Y;
             DepthClickPoint = depthMatrix[(int)VerticalClickPoint, (int)HorizontalClickPoint];
         }
@@ -611,6 +636,18 @@ namespace QU_KSOT
         private void dimming_Unchecked(object sender, RoutedEventArgs e)
         {
             _dimming = false;
+        }
+
+        private void textBoxLifespan_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                progressBar1.Maximum = ((Convert.ToInt16(textBoxLifespan.Text) * 4) / _tickDuration);
+            }
+            catch (Exception ex1)
+            {
+                MessageBox.Show(ex1.Message);
+            }
         }
     }
 }
